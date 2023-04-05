@@ -116,180 +116,182 @@ Be sure to view the following repositories to understand all the customizable op
 
 
 #### Container Options
-| Variable | Value                            | Default |
-| -------- | -------------------------------- | ------- |
-| `CONFIG_PATH` | | `/config/` |
-| `CONFIG_FILE` | | `media-repo.yaml` |
-| `DATA_PATH` | | `/data/` |
-| `MEDIA_PATH` | | `${DATA_PATH}/media/` |
-| `MIGRATIONS_PATH` | | `/assets/matrix-media-repo/migrations/` |
-| `ASSETS_PATH` | | `/assets/matrix-media-repo/assets/` |
-| `TEMPLATES_PATH` | | `/assets/matrix-media-repo/templates/` |
-| `LOG_TYPE` | | `FILE` |
-| `LOG_PATH` | | `/logs/` |
-| `LOG_COLOURS` | | `false` |
-| `LOG_JSON` | | `TRUE` |
-| `SETUP_MODE` | | `AUTO` |
+| Variable          | Value | Default                                 |
+| ----------------- | ----- | --------------------------------------- |
+| `CONFIG_PATH`     |       | `/config/`                              |
+| `CONFIG_FILE`     |       | `media-repo.yaml`                       |
+| `DATA_PATH`       |       | `/data/`                                |
+| `MEDIA_PATH`      |       | `${DATA_PATH}/media/`                   |
+| `MIGRATIONS_PATH` |       | `/assets/matrix-media-repo/migrations/` |
+| `ASSETS_PATH`     |       | `/assets/matrix-media-repo/assets/`     |
+| `TEMPLATES_PATH`  |       | `/assets/matrix-media-repo/templates/`  |
+| `LOG_TYPE`        |       | `FILE`                                  |
+| `LOG_PATH`        |       | `/logs/`                                |
+| `LOG_COLOURS`     |       | `false`                                 |
+| `LOG_JSON`        |       | `TRUE`                                  |
+| `SETUP_MODE`      |       | `AUTO`                                  |
 
 #### Access Tokens and Appservices
 
-| Variable | Value                            | Default |
-| -------- | -------------------------------- | ------- |
-| `ACCESSTOKENS_MAX_CACHE_TIME` | | `0` |
-| `ACCESSTOKENS_USE_LOCAL_APPSERVICE_CONFIG` | | `false` |
+| Variable                                   | Value | Default |
+| ------------------------------------------ | ----- | ------- |
+| `ACCESSTOKENS_MAX_CACHE_TIME`              |       | `0`     |
+| `ACCESSTOKENS_USE_LOCAL_APPSERVICE_CONFIG` |       | `false` |
 
 #### Repository Options
 
-| Variable | Value                            | Default |
-| -------- | -------------------------------- | ------- |
-| `REPOSITORY_ADMINS` | | `@your_username:example.org` |
+| Variable            | Value | Default                      |
+| ------------------- | ----- | ---------------------------- |
+| `REPOSITORY_ADMINS` |       | `@your_username:example.org` |
+
 #### Networking Options
 
-| Variable | Value                            | Default |
-| -------- | -------------------------------- | ------- |
-| `LISTEN_IP` | | `0.0.0.0` |
-| `LISTEN_PORT` | | `8000` |
-| `TRUST_ANY_FORWARDED_ADDRESSES` | | `TRUE` |
-| `USE_FORWARDED_HOST_HEADER` | | `TRUE` |
+| Variable                        | Value | Default   |
+| ------------------------------- | ----- | --------- |
+| `LISTEN_IP`                     |       | `0.0.0.0` |
+| `LISTEN_PORT`                   |       | `8000`    |
+| `TRUST_ANY_FORWARDED_ADDRESSES` |       | `TRUE`    |
+| `USE_FORWARDED_HOST_HEADER`     |       | `TRUE`    |
 
 #### Homeserver Options
 
-| Variable | Value                            | Default |
-| -------- | -------------------------------- | ------- |
-| `DEFAULT_HOMESERVER_BACKOFF` | | `10` |
-| `DEFAULT_HOMESERVER_API_TYPE` | | `matrix` |
-| `HOMESERVER_TIMEOUT` | | `30` |
+| Variable                      | Value | Default  |
+| ----------------------------- | ----- | -------- |
+| `DEFAULT_HOMESERVER_BACKOFF`  |       | `10`     |
+| `DEFAULT_HOMESERVER_API_TYPE` |       | `matrix` |
+| `HOMESERVER_TIMEOUT`          |       | `30`     |
 
 #### Federation Options
 
-| Variable | Value                            | Default |
-| -------- | -------------------------------- | ------- |
-| `FEDERATION_BACKOFF_FAILURE` | | `20` |
-| `FEDERATION_IGNORED_HOSTS` | | `example.org` |
-| `DB_POOL_CONNECTIONS_MAX` | | `25` |
-| `DB_POOL_CONNECTIONS_IDLE` | | `5` |
+| Variable                     | Value | Default       |
+| ---------------------------- | ----- | ------------- |
+| `FEDERATION_BACKOFF_FAILURE` |       | `20`          |
+| `FEDERATION_IGNORED_HOSTS`   |       | `example.org` |
+| `DB_POOL_CONNECTIONS_MAX`    |       | `25`          |
+| `DB_POOL_CONNECTIONS_IDLE`   |       | `5`           |
 
 | `ENABLE_SHARED_SECRET_AUTH` | | `false` |
 
 #### Download and Upload Limits
-| Variable | Value                            | Default |
-| -------- | -------------------------------- | ------- |
-| `UPLOADS_MAX_BYTES` | | `104857600` |
-| `UPLOADS_MIN_BYTES` | | `1000` |
-| `DOWNLOADS_MAX_BYTES` | | `104857600` |
-| `DOWNLOADS_WORKERS` | | `10` |
-| `DOWNLOADS_FAILURE_CACHE_MINUTES` | | `5` |
-| `DOWNLOADS_EXPIRE_DAYS` | | `0` |
-| `DOWNLOADS_DEFAULT_RANGE_CHUNK_BYTES` | | `10485760` |
-| `FEDERATION_TIMEOUT` | | `120` |
+| Variable                              | Value | Default     |
+| ------------------------------------- | ----- | ----------- |
+| `UPLOADS_MAX_BYTES`                   |       | `104857600` |
+| `UPLOADS_MIN_BYTES`                   |       | `1000`      |
+| `DOWNLOADS_MAX_BYTES`                 |       | `104857600` |
+| `DOWNLOADS_WORKERS`                   |       | `10`        |
+| `DOWNLOADS_FAILURE_CACHE_MINUTES`     |       | `5`         |
+| `DOWNLOADS_EXPIRE_DAYS`               |       | `0`         |
+| `DOWNLOADS_DEFAULT_RANGE_CHUNK_BYTES` |       | `10485760`  |
+| `FEDERATION_TIMEOUT`                  |       | `120`       |
 
 
 #### Metrics Options
-| Variable | Value                            | Default |
-| -------- | -------------------------------- | ------- |
-| `ENABLE_METRICS` | | `false` |
-| `METRICS_LISTEN_IP` | | `0.0.0.0` |
-| `METRICS_LISTEN_PORT` | | `9000` |
-| `LOG_LEVEL` | | `info` |
-| `DB_PORT` | | `5432` |
+| Variable              | Value | Default   |
+| --------------------- | ----- | --------- |
+| `ENABLE_METRICS`      |       | `false`   |
+| `METRICS_LISTEN_IP`   |       | `0.0.0.0` |
+| `METRICS_LISTEN_PORT` |       | `9000`    |
+| `LOG_LEVEL`           |       | `info`    |
+| `DB_PORT`             |       | `5432`    |
 
 #### Datastore Options
-| Variable | Value                            | Default |
-| -------- | -------------------------------- | ------- |
-| `MEDIA_THUMBNAILS_TYPE` | | `FILE` |
-| `MEDIA_THUMBNAILS_PATH` | | `${MEDIA_PATH}/thumbnails/` |
-| `MEDIA_REMOTE_TYPE` | | `FILE` |
-| `MEDIA_REMOTE_PATH` | | `${MEDIA_PATH}/remote/` |
-| `MEDIA_LOCAL_TYPE` | | `FILE` |
-| `MEDIA_LOCAL_PATH` | | `${MEDIA_PATH}/local/` |
-| `MEDIA_ARCHIVES_TYPE` | | `FILE` |
-| `MEDIA_ARCHIVES_PATH` | | `${MEDIA_PATH}/archives/` |
+| Variable                | Value | Default                     |
+| ----------------------- | ----- | --------------------------- |
+| `MEDIA_THUMBNAILS_TYPE` |       | `FILE`                      |
+| `MEDIA_THUMBNAILS_PATH` |       | `${MEDIA_PATH}/thumbnails/` |
+| `MEDIA_REMOTE_TYPE`     |       | `FILE`                      |
+| `MEDIA_REMOTE_PATH`     |       | `${MEDIA_PATH}/remote/`     |
+| `MEDIA_LOCAL_TYPE`      |       | `FILE`                      |
+| `MEDIA_LOCAL_PATH`      |       | `${MEDIA_PATH}/local/`      |
+| `MEDIA_ARCHIVES_TYPE`   |       | `FILE`                      |
+| `MEDIA_ARCHIVES_PATH`   |       | `${MEDIA_PATH}/archives/`   |
+
 #### URL Previews Options
 
-| Variable | Value                            | Default |
-| -------- | -------------------------------- | ------- |
-| `ENABLE_URL_PREVIEWS` | | `true` |
-| `URL_PREVIEWS_MAX_PAGESIZE_BYTES` | | `10485760` |
-| `URL_PREVIEWS_PREVIEW_UNSAFE` | | `false` |
-| `URL_PREVIEWS_MAX_WORDS` | | `50` |
-| `URL_PREVIEWS_MAX_LENGTH` | | `200` |
-| `URL_PREVIEWS_MAX_TITLE_WORDS` | | `30` |
-| `URL_PREVIEWS_MAX_TITLE_CHARACTERS` | | `50` |
-| `URL_PREVIEWS_TIMEOUT` | | `10` |
-| `URL_PREVIEWS_EXPIRE_DAYS` | | `0` |
-| `URL_PREVIEWS_DEFAULT_LANGUAGE` | | `en-US,en` |
-| `URL_PREVIEWS_USER_AGENT` | | `matrix-media-repo` |
-| `URL_PREVIEWS_OEMBED` | | `FALSE` |
-| `URL_PREVIEWS_ALLOWED_NETWORKS` | | `0.0.0.0/0` |
-| `URL_PREVIEWS_DISALLOWED_NETWORKS` | | `127.0.0.1/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,100.64.0.0/10,169.254.0.0/16,::1/128,fe80::/64,fc00::/7` |
-| `URL_PREVIEWS_FILE_TYPES` | | `image/*` |
-| `URL_PREVIEWS_WORKERS` | | `10` |
+| Variable                            | Value | Default                                                                                                       |
+| ----------------------------------- | ----- | ------------------------------------------------------------------------------------------------------------- |
+| `ENABLE_URL_PREVIEWS`               |       | `true`                                                                                                        |
+| `URL_PREVIEWS_MAX_PAGESIZE_BYTES`   |       | `10485760`                                                                                                    |
+| `URL_PREVIEWS_PREVIEW_UNSAFE`       |       | `false`                                                                                                       |
+| `URL_PREVIEWS_MAX_WORDS`            |       | `50`                                                                                                          |
+| `URL_PREVIEWS_MAX_LENGTH`           |       | `200`                                                                                                         |
+| `URL_PREVIEWS_MAX_TITLE_WORDS`      |       | `30`                                                                                                          |
+| `URL_PREVIEWS_MAX_TITLE_CHARACTERS` |       | `50`                                                                                                          |
+| `URL_PREVIEWS_TIMEOUT`              |       | `10`                                                                                                          |
+| `URL_PREVIEWS_EXPIRE_DAYS`          |       | `0`                                                                                                           |
+| `URL_PREVIEWS_DEFAULT_LANGUAGE`     |       | `en-US,en`                                                                                                    |
+| `URL_PREVIEWS_USER_AGENT`           |       | `matrix-media-repo`                                                                                           |
+| `URL_PREVIEWS_OEMBED`               |       | `FALSE`                                                                                                       |
+| `URL_PREVIEWS_ALLOWED_NETWORKS`     |       | `0.0.0.0/0`                                                                                                   |
+| `URL_PREVIEWS_DISALLOWED_NETWORKS`  |       | `127.0.0.1/8,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,100.64.0.0/10,169.254.0.0/16,::1/128,fe80::/64,fc00::/7` |
+| `URL_PREVIEWS_FILE_TYPES`           |       | `image/*`                                                                                                     |
+| `URL_PREVIEWS_WORKERS`              |       | `10`                                                                                                          |
 
 #### Sentry Options
-| Variable | Value                            | Default |
-| -------- | -------------------------------- | ------- |
-| `ENABLE_SENTRY` | | `FALSE` |
-| `SENTRY_DSN` | | `https://examplePublicKey@ingest.sentry.io/0` |
-| `SENTRY_DEBUG` | | `FALSE` |
+| Variable        | Value | Default                                       |
+| --------------- | ----- | --------------------------------------------- |
+| `ENABLE_SENTRY` |       | `FALSE`                                       |
+| `SENTRY_DSN`    |       | `https://examplePublicKey@ingest.sentry.io/0` |
+| `SENTRY_DEBUG`  |       | `FALSE`                                       |
 
 #### Redis Options
-| Variable | Value                            | Default |
-| -------- | -------------------------------- | ------- |
-| `ENABLE_REDIS` | | `FALSE` |
-| `REDIS_DB_NUMBER` | | `0` |
+| Variable          | Value | Default |
+| ----------------- | ----- | ------- |
+| `ENABLE_REDIS`    |       | `FALSE` |
+| `REDIS_DB_NUMBER` |       | `0`     |
 
 #### Blurhash Options
-| Variable | Value                            | Default |
-| -------- | -------------------------------- | ------- |
-| `ENABLE_BLURHASH` | | `FALSE` |
-| `BLURHASH_MAX_WIDTH` | | `1024` |
-| `BLURHASH_MAX_HEIGHT` | | `1024` |
-| `BLURHASH_THUMB_WIDTH` | | `64` |
-| `BLURHASH_THUMB_HEIGHT` | | `64` |
-| `BLURHASH_X_COMPONENTS` | | `4` |
-| `BLURHASH_Y_COMPONENTS` | | `3` |
-| `BLURHASH_PUNCH` | | `1` |
+| Variable                | Value | Default |
+| ----------------------- | ----- | ------- |
+| `ENABLE_BLURHASH`       |       | `FALSE` |
+| `BLURHASH_MAX_WIDTH`    |       | `1024`  |
+| `BLURHASH_MAX_HEIGHT`   |       | `1024`  |
+| `BLURHASH_THUMB_WIDTH`  |       | `64`    |
+| `BLURHASH_THUMB_HEIGHT` |       | `64`    |
+| `BLURHASH_X_COMPONENTS` |       | `4`     |
+| `BLURHASH_Y_COMPONENTS` |       | `3`     |
+| `BLURHASH_PUNCH`        |       | `1`     |
 
 #### Plugin Options
-| Variable | Value                            | Default |
-| -------- | -------------------------------- | ------- |
-| `ENABLE_PLUGINS` | | `FALSE` |
+| Variable         | Value | Default |
+| ---------------- | ----- | ------- |
+| `ENABLE_PLUGINS` |       | `FALSE` |
 
 #### Quarantine Options
-| Variable | Value                            | Default |
-| -------- | -------------------------------- | ------- |
-| `QUARANTINE_REPLACE_THUMBNAILS` | | `TRUE` |
-| `QUARANTINE_REPLACE_DOWNLOADS` | | `TRUE` |
-| `QUARANTINE_LOCAL_ADMINS` | | `TRUE` |
-| `ENABLE_IDENTICONS` | | `TRUE` |
+| Variable                        | Value | Default |
+| ------------------------------- | ----- | ------- |
+| `QUARANTINE_REPLACE_THUMBNAILS` |       | `TRUE`  |
+| `QUARANTINE_REPLACE_DOWNLOADS`  |       | `TRUE`  |
+| `QUARANTINE_LOCAL_ADMINS`       |       | `TRUE`  |
+| `ENABLE_IDENTICONS`             |       | `TRUE`  |
 
 #### Rete Limiting
-| Variable | Value                            | Default |
-| -------- | -------------------------------- | ------- |
-| `ENABLE_RATELIMIT` | | `TRUE` |
-| `RATELIMIT_REQUESTS_PER_SECOND` | | `1` |
-| `RATELIMIT_BURST` | | `1` |
+| Variable                        | Value | Default |
+| ------------------------------- | ----- | ------- |
+| `ENABLE_RATELIMIT`              |       | `TRUE`  |
+| `RATELIMIT_REQUESTS_PER_SECOND` |       | `1`     |
+| `RATELIMIT_BURST`               |       | `1`     |
 
 #### Thumbnail Options
-| Variable | Value                            | Default |
-| -------- | -------------------------------- | ------- |
-| `THUMBNAIL_TYPES` | | `image/jpeg,image/jpg,image/png,image/gif` |
-| `THUMBNAIL01_HEIGHT` | | `32` |
-| `THUMBNAIL01_WIDTH` | | `32` |
-| `THUMBNAIL02_HEIGHT` | | `96` |
-| `THUMBNAIL02_WIDTH` | | `96` |
-| `THUMBNAIL03_HEIGHT` | | `320` |
-| `THUMBNAIL03_WIDTH` | | `240` |
-| `THUMBNAIL04_HEIGHT` | | `640` |
-| `THUMBNAIL04_WIDTH` | | `480` |
-| `THUMBNAIL05_HEIGHT` | | `800` |
-| `THUMBNAIL05_WIDTH` | | `600` |
+| Variable             | Value | Default                                    |
+| -------------------- | ----- | ------------------------------------------ |
+| `THUMBNAIL_TYPES`    |       | `image/jpeg,image/jpg,image/png,image/gif` |
+| `THUMBNAIL01_HEIGHT` |       | `32`                                       |
+| `THUMBNAIL01_WIDTH`  |       | `32`                                       |
+| `THUMBNAIL02_HEIGHT` |       | `96`                                       |
+| `THUMBNAIL02_WIDTH`  |       | `96`                                       |
+| `THUMBNAIL03_HEIGHT` |       | `320`                                      |
+| `THUMBNAIL03_WIDTH`  |       | `240`                                      |
+| `THUMBNAIL04_HEIGHT` |       | `640`                                      |
+| `THUMBNAIL04_WIDTH`  |       | `480`                                      |
+| `THUMBNAIL05_HEIGHT` |       | `800`                                      |
+| `THUMBNAIL05_WIDTH`  |       | `600`                                      |
 
 ### Networking
 
-| Port | Protocol | Description |
-| -----| -------- | ----------- |
-| `8000` | `tcp` | Matrix Media Repo |
+| Port   | Protocol | Description       |
+| ------ | -------- | ----------------- |
+| `8000` | `tcp`    | Matrix Media Repo |
 
 ## Maintenance
 ### Shell Access

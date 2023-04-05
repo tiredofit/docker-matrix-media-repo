@@ -219,7 +219,7 @@ set +x
                                                 {
                                                     "type": "file",
                                                     "enabled": true,
-                                                    "forKinds": [ "local" ] ,
+                                                    "forKinds": [ "local_media" ] ,
                                                     "opts": {
                                                             "path": env(MEDIA_LOCAL_PATH)
                                                     }
@@ -238,7 +238,7 @@ set +x
                                                     {
                                                         "type": "file",
                                                         "enabled": true,
-                                                        "forKinds": [ "remote" ] ,
+                                                        "forKinds": [ "remote_media" ] ,
                                                         "opts": {
                                                                 "path": env(MEDIA_REMOTE_PATH)
                                                         }

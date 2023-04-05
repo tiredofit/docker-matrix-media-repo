@@ -1,3 +1,9 @@
+## 0.19.2 2023-04-05 <dave at tiredofit dot ca>
+
+   ### Changed
+      - Fix for Media Types
+
+
 ## 0.19.1 2023-04-05 <dave at tiredofit dot ca>
 
    ### Changed

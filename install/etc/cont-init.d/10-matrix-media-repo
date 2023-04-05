@@ -1,0 +1,13 @@
+#!/command/with-contenv bash
+
+source /assets/functions/00-container
+set -a
+prepare_service
+set +a
+PROCESS_NAME="matrix-media-repo"
+
+sanity_db postgres
+bootstrap_filesystem
+configure_application
+
+liftoff

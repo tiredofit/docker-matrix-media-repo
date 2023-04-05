@@ -1,0 +1,67 @@
+services:
+  matrix-media-repo-app:
+    image: tiredofit/matrix-media-repo:latest
+    container_name: matrix-media-repo-app
+    labels:
+      - traefik.enable=true
+      - traefik.http.routers.matrix-media-repo.rule=Host(`matrix-media-repo.example.com`)
+      - traefik.http.services.matrix-media-repo.loadbalancer.server.port=8000
+    volumes:
+      - ./config:/config
+      - ./logs:/logs
+    environment:
+      - TIMEZONE=America/Vancouver
+      - CONTAINER_NAME=matrix_media_repo-app
+      - SETUP_TYPE=AUTO
+
+      - REDIS_HOST=matrix-media-repo-db-redis
+      - DB_HOST=matrix-media-repo-db
+      - DB_NAME=matrix_media_repo
+      - DB_USER=matrix_media_repo
+      - DB_PASS=matrix_media_repo
+    networks:
+      - proxy
+      - services
+    restart: always
+
+  matrix-media-repo-db:
+    image: tiredofit/postgres:15
+    container_name: matrix-media-repo-db
+    volumes:
+      - ./db/postgresql:/var/lib/postgresql
+    environment:
+      - TIMEZONE=America/Vancouver
+      - CONTAINER_NAME=matrix-media-repo-db
+
+      - POSTGRES_DB=matrix_media_repo
+      - POSTGRES_USER=matrix_media_repo
+      - POSTGRES_PASSWORD=matrix_media_repo
+    networks:
+      - services
+    restart: always
+
+  matrix-media-repo-db-backup:
+    image: tiredofit/db-backup:latest
+    container_name: matrix-media-repo-db-backup
+    volumes:
+      - ./dbbackup:/backup
+    environment:
+      - TIMEZONE=America/Vancouver
+      - CONTAINER_NAME=matrix-media-repo-db-backup
+      - DB_HOST=matrix_media_repo-db
+      - DB_TYPE=postgres
+      - DB_NAME=matrix_media_repo
+      - DB_USER=matrix_media_repo
+      - DB_PASS=matrix_media_repo
+      - DB_DUMP_FREQ=1440
+      - DB_DUMP_BEGIN=0000
+      - DB_CLEANUP_TIME=8640
+    networks:
+      - services
+    restart: always
+
+networks:
+  proxy:
+    external: true
+  services:
+    external: true

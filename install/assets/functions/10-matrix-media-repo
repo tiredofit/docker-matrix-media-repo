@@ -1,0 +1,412 @@
+#!/command/with-contenv bash
+
+bootstrap_filesystem() {
+    if [ "${ASSETS_PATH}" != "/assets/matrix-media-repo/assets/" ] ; then
+        if [ ! -d "${ASSETS_PATH}" ] ; then
+            mkdir -p "${ASSETS_PATH}"
+            cp -R /assets/matrix-media-repo/assets/* "${ASSETS_PATH}"
+        fi
+
+        if [ "$(stat -c %U "${ASSETS_PATH}")" != "matrix" ] ; then chown -R matrix:matrix "${ASSETS_PATH}" ; fi
+    fi
+
+    if [ ! -d "${CONFIG_PATH}" ]; then
+        mkdir -p "${CONFIG_PATH}"
+    fi
+    if [ $(stat -c %U "${CONFIG_PATH}") != "matrix" ] ; then chown -R matrix:matrix "${CONFIG_PATH}" ; fi
+
+    if [ ! -d "${DATA_PATH}" ]; then
+        mkdir -p "${DATA_PATH}"
+    fi
+    if [ "$(stat -c %U "${DATA_PATH}")" != "matrix" ] ; then chown matrix:matrix "${DATA_PATH}" ; fi
+
+
+    if [ ! -d "${LOG_PATH}" ]; then
+        mkdir -p "${LOG_PATH}"
+    fi
+    if [ "$(stat -c %U "${LOG_PATH}")" != "matrix" ] ; then chown -R matrix:matrix "${LOG_PATH}" ; fi
+
+    case "${LOG_TYPE,,}" in
+        file )
+            create_logrotate matrix-media-repo "${LOG_PATH}"/*.log matrix matrix
+        ;;
+    esac
+
+    if [ ! -d "${MEDIA_PATH}" ]; then
+        mkdir -p "${MEDIA_PATH}"
+    fi
+    if [ "$(stat -c %U "${MEDIA_PATH}")" != "matrix" ] ; then chown matrix:matrix "${MEDIA_PATH}" ; fi
+
+    if [ "${MEDIA_ARCHIVES_TYPE,,}" = "file" ] ; then
+        if [ ! -d "${MEDIA_ARCHIVES_PATH}" ]; then
+            mkdir -p "${MEDIA_ARCHIVES_PATH}"
+        fi
+        if [ "$(stat -c %U "${MEDIA_ARCHIVES_PATH}")" != "matrix" ] ; then chown matrix:matrix "${MEDIA_ARCHIVES_PATH}" ; fi
+    fi
+
+    if [ "${MEDIA_LOCAL_TYPE,,}" = "file" ] ; then
+        if [ ! -d "${MEDIA_LOCAL_PATH}" ]; then
+            mkdir -p "${MEDIA_LOCAL_PATH}"
+        fi
+        if [ "$(stat -c %U "${MEDIA_LOCAL_PATH}")" != "matrix" ] ; then chown matrix:matrix "${MEDIA_LOCAL_PATH}" ; fi
+    fi
+
+    if [ "${MEDIA_REMOTE_TYPE,,}" = "file" ] ; then
+        if [ ! -d "${MEDIA_REMOTE_PATH}" ]; then
+            mkdir -p "${MEDIA_REMOTE_PATH}"
+        fi
+        if [ "$(stat -c %U "${MEDIA_REMOTE_PATH}")" != "matrix" ] ; then chown matrix:matrix "${MEDIA_REMOTE_PATH}" ; fi
+    fi
+
+    if [ "${MEDIA_THUMBNAILS_TYPE,,}" = "file" ] ; then
+        if [ ! -d "${MEDIA_THUMBNAILS_PATH}" ]; then
+            mkdir -p "${MEDIA_THUMBNAILS_PATH}"
+        fi
+        if [ "$(stat -c %U "${MEDIA_THUMBNAILS_PATH}")" != "matrix" ] ; then chown matrix:matrix "${MEDIA_THUMBNAILS_PATH}" ; fi
+    fi
+
+    if [ "${MIGRATIONS_PATH}" != "/assets/matrix-media-repo/migrations/" ] ; then
+        if [ ! -d "${MIGRATIONS_PATH}" ] ; then
+            mkdir -p "${MIGRATIONS_PATH}"
+        fi
+
+        if [ "$(stat -c %U "${MIGRATIONS_PATH}")" != "matrix" ] ; then chown -R matrix:matrix "${MIGRATIONS_PATH}" ; fi
+    fi
+
+    if [ "${TEMPLATES_PATH}" != "/assets/matrix-media-repo/templates/" ] ; then
+        if [ ! -d "${TEMPLATES_PATH}" ] ; then
+            mkdir -p "${TEMPLATES_PATH}"
+            cp -R /assets/matrix-media-repo/templates/* "${TEMPLATES_PATH}"
+        fi
+
+        if [ "$(stat -c %U "${TEMPLATES_PATH}")" != "matrix" ] ; then chown -R matrix:matrix "${TEMPLATES_PATH}" ; fi
+    fi
+}
+
+configure_application() {
+    if [ "${SETUP_TYPE,,}" != "auto" ] && [ ! -f "${CONFIG_PATH}"/"${CONFIG_FILE}" ] ; then
+        print_notice "[configure_application] No configuration detected, creating sample config"
+        sudo -u matrix cp -R /assets/matrix-media-repo/config/config.sample.yaml "${CONFIG_PATH}"/"${CONFIG_FILE}"
+    fi
+
+    if [ "${SETUP_TYPE,,}" = "auto" ] ; then
+        print_notice "[configure_application] Auto configuring settings"
+
+        db_ready postgres
+
+        if var_true "${DB_ENABLE_TLS}" ; then
+            db_tls="?sslmode=enable"
+        else
+            db_tls="?sslmode=disable"
+        fi
+
+        export DB_STRING=${DB_STRING:-"postgres://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}${db_tls}"}
+
+        s6-setuidgid matrix touch "${CONFIG_PATH}"/"${CONFIG_FILE}"
+        s6-setuidgid matrix yq -i   '
+                                        .repo.bindAddress = env(LISTEN_IP) |
+                                        .repo.port = env(LISTEN_PORT) |
+                                        .repo.logDirectory = env(LOG_PATH) |
+                                        .repo.logColours = env(LOG_COLOURS) |
+                                        .repo.jsonLogs = env(LOG_JSON) |
+                                        .repo.logLevel = env(LOG_LEVEL) |
+                                        .repo.trustAnyForwardedAddresses = env(TRUST_ANY_FORWARDED_ADDRESSES) |
+                                        .repo.useForwardedHost = env(USE_FORWARDED_HOST_HEADER)
+                                    ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+
+        s6-setuidgid matrix yq -i   '
+                                        .federation.backoffAt = env(FEDERATION_BACKOFF_FAILURE) |
+                                        .federation.ignoredHosts = "'$(echo ${FEDERATION_IGNORED_HOSTS//,/\",\"})'"
+                                    ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+
+        s6-setuidgid matrix yq -i   '
+                                        .database.postgres = env(DB_STRING) |
+                                        .database.pool.maxConnections = env(DB_POOL_CONNECTIONS_MAX) |
+                                        .database.pool.maxConnections = env(DB_POOL_CONNECTIONS_IDLE)
+                                    ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+
+        s6-setuidgid matrix yq -i   '
+                                        del(.homeservers)
+                                    ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+
+        if [ -n "${HOMESERVER_NAME}" ] && [ -z "${HOMESERVER01_NAME}" ] ; then export HOMESERVER01_NAME="${HOMESERVER_NAME}" ; unset HOMESERVER_NAME ; fi
+        if [ -n "${HOMESERVER_BASE_URL}" ] && [ -z "${HOMESERVER01_BASE_URL}" ] ; then export HOMESERVER01_BASE_URL="${HOMESERVER_BASE_URL}" ; unset HOMESERVER_BASE_URL ; fi
+        if [ -n "${HOMESERVER_BACKOFF}" ] && [ -z "${HOMESERVER01_BACKOFF}" ] ; then export HOMESERVER01_BACKOFF="${HOMESERVER_BACKOFF}" ; unset HOMESERVER_BACKOFF ; fi
+        if [ -n "${HOMESERVER_API_TYPE}" ] && [ -z "${HOMESERVER01_API_TYPE}" ] ; then export HOMESERVER01_API_TYPE="${HOMESERVER_API_TYPE}" ; unset HOMESERVER_API_TYPE ; fi
+
+        hsnum=$(printenv | sort | grep -c '^HOMESERVER.*_NAME')
+        for (( i = 01; i <= hsnum; i++ )) ; do
+            i=$(printf "%02d" $i)
+            HOMESERVER_NAME=HOMESERVER${i}_NAME
+            sanity_var HOMESERVER${i}_BASE_URL "Base URL of Homeserver"
+            HOMESERVER_BASE_URL=HOMESERVER${i}_BASE_URL
+            if [ -v HOMESERVER${i}_BACKOFF ] ; then
+                export HOMESERVER_BACKOFF=HOMESERVER${i}_BACKOFF
+            else
+                export HOMESERVER_BACKOFF=DEFAULT_HOMESERVER_BACKOFF
+            fi
+            if [ -v HOMESERVER${i}_API_TYPE ] ; then
+                export HOMESERVER_API_TYPE=HOMESERVER${i}_API_TYPE
+            else
+                export HOMESERVER_API_TYPE=DEFAULT_HOMESERVER_API_TYPE
+            fi
+
+            yq -i   '.homeservers +=  [
+                                        {
+                                            "name" : "'$(echo ${!HOMESERVER_NAME})'",
+                                            "csApi" : "'$(echo ${!HOMESERVER_BASE_URL})'",
+                                            "backoffAt" : '$(echo ${!HOMESERVER_BACKOFF})',
+                                            "adminApiKind" :"'$(echo ${!HOMESERVER_API_TYPE})'"
+                                        }
+                                    ]
+                    ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+        done
+set +x
+        s6-setuidgid matrix yq -i   '
+                                        .accessTokens.maxCacheTimeSeconds = env(ACCESSTOKENS_MAX_CACHE_TIME) |
+                                        .accessTokens.useLocalAppserviceConfig = env(ACCESSTOKENS_USE_LOCAL_APPSERVICE_CONFIG)
+                                    ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+
+        if var_true "${ACCESSTOKENS_USE_LOCAL_APPSERVICE_CONFIG}" ; then
+            s6-setuidgid matrix yq -i   '
+                                            .accessTokens.appservices.id = env(ACCESSTOKENS_APPSERVICE_ID) |
+                                            .accessTokens.appservices.asToken = env(ACCESSTOKENS_APPSERVICE_TOKEN) |
+                                            .accessTokens.appservices.senderUserId = env(ACCESSTOKENS_APPSERVICES_SENDERUSERID) |
+                                            .accessTokens.appservices.userNamespaces.regex env(ACCESSTOKENS_APPSERVICE_USERNAMESPACES_REGEX)
+                                        ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+        fi
+
+        if var_true "${ENABLE_SHARED_SECRET_AUTH}" ; then
+            sanity_var SHARED_SECRET_TOKEN "Shared Authentication Token"
+            s6-setuidgid matrix yq -i   '
+                                            .sharedSecretAuth.enabled = env(ENABLE_SHARED_SECRET_AUTH) |
+                                            .sharedSecretAuth.token = env(SHARED_SECRET_TOKEN)
+                                        ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+        else
+            s6-setuidgid matrix yq -i   '
+                                            .sharedSecretAuth.enabled = env(ENABLE_SHARED_SECRET_AUTH)
+                                        ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+        fi
+
+        s6-setuidgid matrix yq -i   'del(.datastores[] | select(.type=="file"))' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+        s6-setuidgid matrix yq -i   'del(.datastores[] | select(.type=="s3"))' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+        s6-setuidgid matrix yq -i   'del(.datastores[] | select(.type=="ipfs"))' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+        s6-setuidgid matrix yq -i   'del(.datastores[] | select(.forKinds=="archives"))' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+        case "${MEDIA_ARCHIVES_TYPE,,}" in
+            file )
+                s6-setuidgid matrix yq -i '
+                                            .datastores +=
+                                            [
+                                                {
+                                                    "type": "file",
+                                                    "enabled": true,
+                                                    "forKinds": [ "archives" ] ,
+                                                    "opts": {
+                                                            "path": env(MEDIA_ARCHIVES_PATH)
+                                                    }
+                                                }
+                                            ]
+                                        ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+            ;;
+        esac
+
+        s6-setuidgid matrix yq -i   'del(.datastores[] | select(.forKinds=="local"))' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+        case "${MEDIA_LOCAL_TYPE,,}" in
+            file )
+                s6-setuidgid matrix yq -i '
+                                            .datastores +=
+                                            [
+                                                {
+                                                    "type": "file",
+                                                    "enabled": true,
+                                                    "forKinds": [ "local" ] ,
+                                                    "opts": {
+                                                            "path": env(MEDIA_LOCAL_PATH)
+                                                    }
+                                                }
+                                            ]
+                                        ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+            ;;
+        esac
+
+        s6-setuidgid matrix yq -i   'del(.datastores[] | select(.forKinds=="remote"))' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+        case "${MEDIA_REMOTE_TYPE,,}" in
+            file )
+                s6-setuidgid matrix yq -i   '
+                                                .datastores +=
+                                                [
+                                                    {
+                                                        "type": "file",
+                                                        "enabled": true,
+                                                        "forKinds": [ "remote" ] ,
+                                                        "opts": {
+                                                                "path": env(MEDIA_REMOTE_PATH)
+                                                        }
+                                                    }
+                                                ]
+                                            ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+            ;;
+        esac
+
+        s6-setuidgid matrix yq -i   'del(.datastores[] | select(.forKinds=="thumbnails"))' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+        case "${MEDIA_THUMBNAILS_TYPE,,}" in
+            file )
+                s6-setuidgid matrix yq -i   '
+                                                .datastores +=
+                                                [
+                                                    {
+                                                        "type": "file",
+                                                        "enabled": true,
+                                                        "forKinds": [ "thumbnails" ] ,
+                                                        "opts": {
+                                                                "path": env(MEDIA_THUMBNAILS_PATH)
+                                                        }
+                                                    }
+                                                ]
+                                            ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+            ;;
+        esac
+
+        s6-setuidgid matrix yq -i   '
+                                        .admins = [ "'$(echo ${REPOSITORY_ADMINS//,/\",\"})'" ]
+                                    ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+
+        ## Archives (TBC)
+        ##
+
+        s6-setuidgid matrix yq -i   '
+                                        .uploads.maxBytes = env(UPLOADS_MAX_BYTES) |
+                                        .uploads.minBytes = env(UPLOADS_MIN_BYTES)
+                                    ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+                                    # Needs Quotas
+
+        s6-setuidgid matrix yq -i   '
+                                        .downloads.maxBytes = env(DOWNLOADS_MAX_BYTES) |
+                                        .downloads.numWorkers = env(DOWNLOADS_WORKERS) |
+                                        .downloads.failureCacheMinutes = env(DOWNLOADS_FAILURE_CACHE_MINUTES) |
+                                        .downloads.expireAfterDays = env(DOWNLOADS_EXPIRE_DAYS) |
+                                        .downloads.defaultRangeChunkSizeBytes = env(DOWNLOADS_DEFAULT_RANGE_CHUNK_BYTES)
+                                    ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+
+        s6-setuidgid matrix yq -i   '
+                                        .urlPreviews.enabled = env(ENABLE_URL_PREVIEWS) |
+                                        .urlPreviews.maxPageSizeBytes = env(URL_PREVIEWS_MAX_PAGESIZE_BYTES) |
+                                        .urlPreviews.previewUnsafeCertificates = env(URL_PREVIEWS_PREVIEW_UNSAFE) |
+                                        .urlPreviews.numWords = env(URL_PREVIEWS_MAX_WORDS) |
+                                        .urlPreviews.maxLength = env(URL_PREVIEWS_MAX_LENGTH) |
+                                        .urlPreviews.numTitleWords = env(URL_PREVIEWS_MAX_TITLE_WORDS) |
+                                        .urlPreviews.maxTitleLength = env(URL_PREVIEWS_MAX_TITLE_CHARACTERS) |
+                                        .urlPreviews.filePreviewTypes = [ "'$(echo ${URL_PREVIEWS_FILE_TYPES//,/\",\"})'" ] |
+                                        .urlPreviews.numWorkers = env(URL_PREVIEWS_WORKERS) |
+                                        .urlPreviews.disallowedNetworks = [ "'$(echo ${URL_PREVIEWS_DISALLOWED_NETWORKS//,/\",\"})'" ] |
+                                        .urlPreviews.allowedNetworks = [ "'$(echo ${URL_PREVIEWS_ALLOWED_NETWORKS//,/\",\"})'" ] |
+                                        .urlPreviews.expireAfterDays = env(URL_PREVIEWS_EXPIRE_DAYS) |
+                                        .urlPreviews.defaultLanguage = env(URL_PREVIEWS_DEFAULT_LANGUAGE) |
+                                        .urlPreviews.userAgent = env(URL_PREVIEWS_USER_AGENT) |
+                                        .urlPreviews.oEmbed = env(URL_PREVIEWS_OEMBED)
+                                    ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+        ## TODO Thumbnails
+        s6-setuidgid matrix yq -i   '
+                                        del(.thumbnails.sizes)
+                                    ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+        thumbnum=$(printenv | sort | grep -c '^THUMBNAIL.*_HEIGHT')
+        for (( i = 01; i <= thumbnum; i++ )) ; do
+            i=$(printf "%02d" $i)
+            export THUMBNAIL_HEIGHT=THUMBNAIL${i}_HEIGHT
+            export THUMBNAIL_WIDTH=THUMBNAIL${i}_WIDTH
+
+            s6-setuidgid matrix yq -i   '
+                                            .thumbnails.sizes +=  [ "width" = "'$(echo ${!THUMBNAIL_WIDTH})'" , "height" = "'$(echo ${!THUMBNAIL_HEIGHT})'" ]
+                                        ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+        done
+
+        s6-setuidgid matrix yq -i   '
+                                        .thumbnails.types = [ "'$(echo ${THUMBNAIL_TYPES//,/\",\"})'" ]
+                                    ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+
+        s6-setuidgid matrix yq -i   '
+                                        .ratelimit.enabled = env(ENABLE_RATELIMIT) |
+                                        .ratelimit.requestsPerSecond = env(RATELIMIT_REQUESTS_PER_SECOND) |
+                                        .ratelimit.burst = env(RATELIMIT_BURST)
+                                    ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+
+        s6-setuidgid matrix yq -i   '
+                                        .identicons.enabled = env(ENABLE_IDENTICONS)
+                                    ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+
+        s6-setuidgid matrix yq -i   '
+                                        .quarantine.replaceThumbnails = env(QUARANTINE_REPLACE_THUMBNAILS) |
+                                        .quarantine.replaceDownloads = env(QUARANTINE_REPLACE_DOWNLOADS) |
+                                        .quarantine.allowLocalAdmins = env(QUARANTINE_LOCAL_ADMINS)
+                                    ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+
+        if [ -n "${QUARANTINE_THUMBNAIL}" ] && [ -f "${QUARANTINE_THUMBNAIL}" ] ; then
+            s6-setuidgid matrix yq -i   '
+                                            .quarantine.thumbnailPath = env(QUARANTINE_THUMBNAIL)
+                                        ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+        fi
+
+        s6-setuidgid matrix yq -i   '
+                                        .timeouts.urlPreviewTimeoutSeconds = env(URL_PREVIEWS_TIMEOUT) |
+                                        .timeouts.federationTimeoutSeconds = env(FEDERATION_TIMEOUT) |
+                                        .timeouts.clientServerTimeoutSeconds = env(HOMESERVER_TIMEOUT)
+                                    ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+
+        s6-setuidgid matrix yq -i   '
+                                        .metrics.enabled = env(ENABLE_METRICS) |
+                                        .metrics.bindAddress = env(METRICS_LISTEN_IP) |
+                                        .metrics.port = env(METRICS_LISTEN_PORT)
+                                    ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+
+        if var_true "${ENABLE_PLUGINS}" ; then
+            :
+        else
+            s6-setuidgid matrix yq -i   '
+                                            del(.plugins)
+                                        ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+        fi
+
+        s6-setuidgid matrix yq -i   '
+                                        .featureSupport.MSC2448.enabled = env(ENABLE_BLURHASH) |
+                                        .featureSupport.MSC2448.maxWidth = env(BLURHASH_MAX_WIDTH) |
+                                        .featureSupport.MSC2448.maxHeight = env(BLURHASH_MAX_HEIGHT) |
+                                        .featureSupport.MSC2448.thumbWidth = env(BLURHASH_THUMB_WIDTH) |
+                                        .featureSupport.MSC2448.thumbHeight = env(BLURHASH_THUMB_HEIGHT) |
+                                        .featureSupport.MSC2448.xComponents = env(BLURHASH_X_COMPONENTS) |
+                                        .featureSupport.MSC2448.yComponents = env(BLURHASH_Y_COMPONENTS) |
+                                        .featureSupport.MSC2448.punch = env(BLURHASH_PUNCH)
+                                    ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+
+        s6-setuidgid matrix yq -i   '
+                                        .redis.enabled = env(ENABLE_REDIS) |
+                                        .redis.dsn = env(REDIS_DB_NUMBER)
+                                    ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+
+        if var_true "${ENABLE_REDIS}" ; then
+            s6-setuidgid matrix yq -i   'del(.redis.shards[])' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+            for redis_host in ${REDIS_HOST} ; do
+                export T_REDIS_HOST=${redis_host}
+                    yq -i   '
+                                [
+                                    .name = env(T_REDIS_HOST) , .addr = "'$(echo ${T_REDIS_HOST})'"
+                                ]
+                            '  "${CONFIG_PATH}"/"${CONFIG_FILE}"
+                unset T_REDIS_HOST
+            done
+        fi
+
+
+        s6-setuidgid matrix yq -i   '
+                                        .sentry.enabled = env(ENABLE_SENTRY) |
+                                        .sentry.dsn = env(SENTRY_DSN) |
+                                        .sentry.debug = env(SENTRY_DEBUG)
+                                    ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+        if [ -n "${SENTRY_ENVIRONMENT}" ] ; then
+            s6-setuidgid matrix yq -i   '
+                                            .sentry.environment = env(SENTRY_ENVIRONMENT)
+                                        ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+        fi
+    else
+        :
+    fi
+}

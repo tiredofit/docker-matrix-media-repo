@@ -1,0 +1,26 @@
+#!/command/with-contenv bash
+
+source /assets/functions/00-container
+PROCESS_NAME="matrix-media-repo"
+prepare_service defaults single
+
+check_container_initialized
+check_service_initialized init
+
+liftoff
+
+case "${LOG_TYPE,,}" in
+    both ) log_type_arg="-alsologtostderr" ;;
+    console ) log_type_arg="-logtostderr" ;;
+    file ) log_type_arg="" ;;
+esac
+
+print_start "Starting Matrix Media Repo ${MATRIX_MEDIA_REPO_VERSION}"
+set -x
+exec s6-setuidgid matrix \
+                                media_repo \
+                                            -assets "${ASSETS_PATH}" \
+                                            -config "${CONFIG_PATH}"/"${CONFIG_FILE}" \
+                                            ${log_type_arg} \
+                                            -migrations "${MIGRATIONS_PATH}" \
+                                            -templates "${TEMPLATES_PATH}" ${EXTRA_ARGS}

@@ -31,6 +31,7 @@ This will build a Docker Image for [Matrix Media Repo](https://github.com/turt2l
   - [Environment Variables](#environment-variables)
     - [Base Images used](#base-images-used)
     - [Container Options](#container-options)
+    - [Database Options](#database-options)
     - [Access Tokens and Appservices](#access-tokens-and-appservices)
     - [Repository Options](#repository-options)
     - [Networking Options](#networking-options)
@@ -40,13 +41,13 @@ This will build a Docker Image for [Matrix Media Repo](https://github.com/turt2l
     - [Metrics Options](#metrics-options)
     - [Datastore Options](#datastore-options)
     - [URL Previews Options](#url-previews-options)
-    - [Sentry Options](#sentry-options)
-    - [Redis Options](#redis-options)
-    - [Blurhash Options](#blurhash-options)
-    - [Plugin Options](#plugin-options)
     - [Quarantine Options](#quarantine-options)
-    - [Rete Limiting](#rete-limiting)
     - [Thumbnail Options](#thumbnail-options)
+    - [Plugin Options](#plugin-options)
+    - [Blurhash Options](#blurhash-options)
+    - [Rate Limiting](#rate-limiting)
+    - [Redis Options](#redis-options)
+    - [Sentry Options](#sentry-options)
   - [Networking](#networking)
 - [Maintenance](#maintenance)
   - [Shell Access](#shell-access)
@@ -66,6 +67,8 @@ This will build a Docker Image for [Matrix Media Repo](https://github.com/turt2l
    *  [Caddy](https://github.com/caddyserver/caddy)
 *  Needs access to a Postgresql database
 *  Optional access to a Redis Server
+
+
 ## Installation
 ### Build from Source
 Clone this repository and build the image with `docker build -t (imagename) .`
@@ -134,10 +137,23 @@ Be sure to view the following repositories to understand all the customizable op
 | `ASSETS_PATH`     |       | `/assets/matrix-media-repo/assets/`     |
 | `TEMPLATES_PATH`  |       | `/assets/matrix-media-repo/templates/`  |
 | `LOG_TYPE`        |       | `FILE`                                  |
+| `LOG_LEVEL`       |       | `info`                                  |
 | `LOG_PATH`        |       | `/logs/`                                |
 | `LOG_COLOURS`     |       | `false`                                 |
 | `LOG_JSON`        |       | `TRUE`                                  |
 | `SETUP_MODE`      |       | `AUTO`                                  |
+
+#### Database Options
+
+| Variable                   | Description                     | Default |
+| -------------------------- | ------------------------------- | ------- |
+| `DB_POOL_CONNECTIONS_MAX`  |                                 | `25`    |
+| `DB_POOL_CONNECTIONS_IDLE` |                                 | `5`     |
+| `DB_HOST`                  | (postgres) Postgresql Hostname  |         |
+| `DB_NAME`                  | (postgres)  Postgresql Name     |         |
+| `DB_PASS`                  | (postgres)  Postgresql Password |         |
+| `DB_PORT`                  | (postgres)  Postgresql Port     | `5432`  |
+| `DB_USER`                  | (postgres)  Postgresql User     |         |
 
 #### Access Tokens and Appservices
 
@@ -148,9 +164,11 @@ Be sure to view the following repositories to understand all the customizable op
 
 #### Repository Options
 
-| Variable            | Value | Default                      |
-| ------------------- | ----- | ---------------------------- |
-| `REPOSITORY_ADMINS` |       | `@your_username:example.org` |
+| Variable                    | Value | Default                      |
+| --------------------------- | ----- | ---------------------------- |
+| `REPOSITORY_ADMINS`         |       | `@your_username:example.org` |
+| `ENABLE_SHARED_SECRET_AUTH` |       | `false`                      |
+| `SHARED_SECRET_TOKEN`       |       |                              |
 
 #### Networking Options
 
@@ -163,11 +181,14 @@ Be sure to view the following repositories to understand all the customizable op
 
 #### Homeserver Options
 
-| Variable                      | Value | Default  |
-| ----------------------------- | ----- | -------- |
-| `DEFAULT_HOMESERVER_BACKOFF`  |       | `10`     |
-| `DEFAULT_HOMESERVER_API_TYPE` |       | `matrix` |
-| `HOMESERVER_TIMEOUT`          |       | `30`     |
+| Variable                      | Value                           | Default  |
+| ----------------------------- | ------------------------------- | -------- |
+| `DEFAULT_HOMESERVER_BACKOFF`  |                                 | `10`     |
+| `DEFAULT_HOMESERVER_API_TYPE` |                                 | `matrix` |
+| `HOMESERVER_TIMEOUT`          |                                 | `30`     |
+| `HOMESERVER_NAME`             | `example.com`                   | |
+| `HOMESERVER_BASE_URL`         | `https://synapse.tiredofit.ca/` | |
+
 
 #### Federation Options
 
@@ -175,10 +196,8 @@ Be sure to view the following repositories to understand all the customizable op
 | ---------------------------- | ----- | ------------- |
 | `FEDERATION_BACKOFF_FAILURE` |       | `20`          |
 | `FEDERATION_IGNORED_HOSTS`   |       | `example.org` |
-| `DB_POOL_CONNECTIONS_MAX`    |       | `25`          |
-| `DB_POOL_CONNECTIONS_IDLE`   |       | `5`           |
+| `FEDERATION_TIMEOUT`         |       | `120`         |
 
-| `ENABLE_SHARED_SECRET_AUTH` | | `false` |
 
 #### Download and Upload Limits
 | Variable                              | Value | Default     |
@@ -190,19 +209,18 @@ Be sure to view the following repositories to understand all the customizable op
 | `DOWNLOADS_FAILURE_CACHE_MINUTES`     |       | `5`         |
 | `DOWNLOADS_EXPIRE_DAYS`               |       | `0`         |
 | `DOWNLOADS_DEFAULT_RANGE_CHUNK_BYTES` |       | `10485760`  |
-| `FEDERATION_TIMEOUT`                  |       | `120`       |
 
 
 #### Metrics Options
+
 | Variable              | Value | Default   |
 | --------------------- | ----- | --------- |
 | `ENABLE_METRICS`      |       | `false`   |
 | `METRICS_LISTEN_IP`   |       | `0.0.0.0` |
 | `METRICS_LISTEN_PORT` |       | `9000`    |
-| `LOG_LEVEL`           |       | `info`    |
-| `DB_PORT`             |       | `5432`    |
 
 #### Datastore Options
+
 | Variable                | Value | Default                     |
 | ----------------------- | ----- | --------------------------- |
 | `MEDIA_THUMBNAILS_TYPE` |       | `FILE`                      |
@@ -235,36 +253,6 @@ Be sure to view the following repositories to understand all the customizable op
 | `URL_PREVIEWS_FILE_TYPES`           |       | `image/*`                                                                                                     |
 | `URL_PREVIEWS_WORKERS`              |       | `10`                                                                                                          |
 
-#### Sentry Options
-| Variable        | Value | Default                                       |
-| --------------- | ----- | --------------------------------------------- |
-| `ENABLE_SENTRY` |       | `FALSE`                                       |
-| `SENTRY_DSN`    |       | `https://examplePublicKey@ingest.sentry.io/0` |
-| `SENTRY_DEBUG`  |       | `FALSE`                                       |
-
-#### Redis Options
-| Variable          | Value | Default |
-| ----------------- | ----- | ------- |
-| `ENABLE_REDIS`    |       | `FALSE` |
-| `REDIS_DB_NUMBER` |       | `0`     |
-
-#### Blurhash Options
-| Variable                | Value | Default |
-| ----------------------- | ----- | ------- |
-| `ENABLE_BLURHASH`       |       | `FALSE` |
-| `BLURHASH_MAX_WIDTH`    |       | `1024`  |
-| `BLURHASH_MAX_HEIGHT`   |       | `1024`  |
-| `BLURHASH_THUMB_WIDTH`  |       | `64`    |
-| `BLURHASH_THUMB_HEIGHT` |       | `64`    |
-| `BLURHASH_X_COMPONENTS` |       | `4`     |
-| `BLURHASH_Y_COMPONENTS` |       | `3`     |
-| `BLURHASH_PUNCH`        |       | `1`     |
-
-#### Plugin Options
-| Variable         | Value | Default |
-| ---------------- | ----- | ------- |
-| `ENABLE_PLUGINS` |       | `FALSE` |
-
 #### Quarantine Options
 | Variable                        | Value | Default |
 | ------------------------------- | ----- | ------- |
@@ -273,12 +261,6 @@ Be sure to view the following repositories to understand all the customizable op
 | `QUARANTINE_LOCAL_ADMINS`       |       | `TRUE`  |
 | `ENABLE_IDENTICONS`             |       | `TRUE`  |
 
-#### Rete Limiting
-| Variable                        | Value | Default |
-| ------------------------------- | ----- | ------- |
-| `ENABLE_RATELIMIT`              |       | `TRUE`  |
-| `RATELIMIT_REQUESTS_PER_SECOND` |       | `1`     |
-| `RATELIMIT_BURST`               |       | `1`     |
 
 #### Thumbnail Options
 | Variable             | Value | Default                                    |
@@ -294,6 +276,44 @@ Be sure to view the following repositories to understand all the customizable op
 | `THUMBNAIL04_WIDTH`  |       | `480`                                      |
 | `THUMBNAIL05_HEIGHT` |       | `800`                                      |
 | `THUMBNAIL05_WIDTH`  |       | `600`                                      |
+
+#### Plugin Options
+| Variable         | Value | Default |
+| ---------------- | ----- | ------- |
+| `ENABLE_PLUGINS` |       | `FALSE` |
+
+#### Blurhash Options
+| Variable                | Value | Default |
+| ----------------------- | ----- | ------- |
+| `ENABLE_BLURHASH`       |       | `FALSE` |
+| `BLURHASH_MAX_WIDTH`    |       | `1024`  |
+| `BLURHASH_MAX_HEIGHT`   |       | `1024`  |
+| `BLURHASH_THUMB_WIDTH`  |       | `64`    |
+| `BLURHASH_THUMB_HEIGHT` |       | `64`    |
+| `BLURHASH_X_COMPONENTS` |       | `4`     |
+| `BLURHASH_Y_COMPONENTS` |       | `3`     |
+| `BLURHASH_PUNCH`        |       | `1`     |
+
+#### Rate Limiting
+| Variable                        | Value | Default |
+| ------------------------------- | ----- | ------- |
+| `ENABLE_RATELIMIT`              |       | `TRUE`  |
+| `RATELIMIT_REQUESTS_PER_SECOND` |       | `1`     |
+| `RATELIMIT_BURST`               |       | `1`     |
+
+#### Redis Options
+| Variable          | Value | Default |
+| ----------------- | ----- | ------- |
+| `ENABLE_REDIS`    |       | `FALSE` |
+| `REDIS_DB_NUMBER` |       | `0`     |
+
+#### Sentry Options
+| Variable        | Value | Default                                       |
+| --------------- | ----- | --------------------------------------------- |
+| `ENABLE_SENTRY` |       | `FALSE`                                       |
+| `SENTRY_DSN`    |       | `https://examplePublicKey@ingest.sentry.io/0` |
+| `SENTRY_DEBUG`  |       | `FALSE`                                       |
+
 
 ### Networking
 

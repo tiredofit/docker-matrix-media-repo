@@ -50,8 +50,9 @@ RUN source assets/functions/00-container && \
     package cleanup && \
     \
     rm -rf \
-           /root/.go \
-	   /usr/src/*
+           /root/.cache \
+           /root/go \
+    	   /usr/src/*
 
 EXPOSE 2323
 

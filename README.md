@@ -20,6 +20,7 @@ This will build a Docker Image for [Matrix Media Repo](https://github.com/turt2l
 - [About](#about)
 - [Maintainer](#maintainer)
 - [Table of Contents](#table-of-contents)
+- [Prerequisites and Assumptions](#prerequisites-and-assumptions)
 - [Installation](#installation)
   - [Build from Source](#build-from-source)
   - [Prebuilt Images](#prebuilt-images)
@@ -58,6 +59,13 @@ This will build a Docker Image for [Matrix Media Repo](https://github.com/turt2l
 - [References](#references)
 
 
+## Prerequisites and Assumptions
+*  Assumes you are using some sort of SSL terminating reverse proxy such as:
+   *  [Traefik](https://github.com/tiredofit/docker-traefik)
+   *  [Nginx](https://github.com/jc21/nginx-proxy-manager)
+   *  [Caddy](https://github.com/caddyserver/caddy)
+*  Needs access to a Postgresql database
+*  Optional access to a Redis Server
 ## Installation
 ### Build from Source
 Clone this repository and build the image with `docker build -t (imagename) .`

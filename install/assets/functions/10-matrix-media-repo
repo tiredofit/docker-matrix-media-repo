@@ -316,7 +316,7 @@ set +x
             export THUMBNAIL_WIDTH=THUMBNAIL${i}_WIDTH
 
             s6-setuidgid matrix yq -i   '
-                                            .thumbnails.sizes +=  [ "width" = "'$(echo ${!THUMBNAIL_WIDTH})'" , "height" = "'$(echo ${!THUMBNAIL_HEIGHT})'" ]
+                                            .thumbnails.sizes +=  [ { "width" : '$(echo ${!THUMBNAIL_WIDTH})' , "height" : '$(echo ${!THUMBNAIL_HEIGHT})' } ]
                                         ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
         done
 
@@ -401,6 +401,7 @@ set +x
                                         .sentry.dsn = env(SENTRY_DSN) |
                                         .sentry.debug = env(SENTRY_DEBUG)
                                     ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+
         if [ -n "${SENTRY_ENVIRONMENT}" ] ; then
             s6-setuidgid matrix yq -i   '
                                             .sentry.environment = env(SENTRY_ENVIRONMENT)

@@ -13,7 +13,7 @@ bootstrap_filesystem() {
     if [ ! -d "${CONFIG_PATH}" ]; then
         mkdir -p "${CONFIG_PATH}"
     fi
-    if [ $(stat -c %U "${CONFIG_PATH}") != "matrix" ] ; then chown -R matrix:matrix "${CONFIG_PATH}" ; fi
+    if [ "$(stat -c %U "${CONFIG_PATH}")" != "matrix" ] ; then chown -R matrix:matrix "${CONFIG_PATH}" ; fi
 
     if [ ! -d "${DATA_PATH}" ]; then
         mkdir -p "${DATA_PATH}"
@@ -161,7 +161,7 @@ configure_application() {
                                     ]
                     ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
         done
-set +x
+
         s6-setuidgid matrix yq -i   '
                                         .accessTokens.maxCacheTimeSeconds = env(ACCESSTOKENS_MAX_CACHE_TIME) |
                                         .accessTokens.useLocalAppserviceConfig = env(ACCESSTOKENS_USE_LOCAL_APPSERVICE_CONFIG)
@@ -305,6 +305,7 @@ set +x
                                         .urlPreviews.userAgent = env(URL_PREVIEWS_USER_AGENT) |
                                         .urlPreviews.oEmbed = env(URL_PREVIEWS_OEMBED)
                                     ' "${CONFIG_PATH}"/"${CONFIG_FILE}"
+
         ## TODO Thumbnails
         s6-setuidgid matrix yq -i   '
                                         del(.thumbnails.sizes)

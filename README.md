@@ -186,8 +186,8 @@ Be sure to view the following repositories to understand all the customizable op
 | `DEFAULT_HOMESERVER_BACKOFF`  |                                 | `10`     |
 | `DEFAULT_HOMESERVER_API_TYPE` |                                 | `matrix` |
 | `HOMESERVER_TIMEOUT`          |                                 | `30`     |
-| `HOMESERVER_NAME`             | `example.com`                   | |
-| `HOMESERVER_BASE_URL`         | `https://synapse.tiredofit.ca/` | |
+| `HOMESERVER_NAME`             | `example.com`                   |          |
+| `HOMESERVER_BASE_URL`         | `https://synapse.tiredofit.ca/` |          |
 
 
 #### Federation Options
